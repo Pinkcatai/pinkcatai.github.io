@@ -4,9 +4,7 @@ Univer# ============================================================
 # Lines starting with # are comments and are ignored.
 # ============================================================
 
-name= Saikat Chakraborty
-
-StudentID=335612
+name= Saikat Chakraborty - 335612
 
 title1=Top 2% MBA Student (2025-2027)
 
