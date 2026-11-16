@@ -1,4 +1,4 @@
-# ============================================================
+Univer# ============================================================
 # Personal profile data for index.html
 # Edit the values after "=" only. Do not change the keys.
 # Lines starting with # are comments and are ignored.
@@ -12,7 +12,7 @@ title2=Just a student
 
 expertise=Automation and Reporting, , AI Applications, Agentic AI
 
-education=Ph.D. in Industrial Engineering, University of Wisconsin-Madison, USA
+education=Pforzheim University
 
 email=chakrabs@hs-pforzheim.de
 
