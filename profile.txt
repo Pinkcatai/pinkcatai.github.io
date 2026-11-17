@@ -4,9 +4,9 @@
 # Lines starting with # are comments and are ignored.
 # ============================================================
 
-name=Saikat Chakraborty - 335612
+name=Saikat Chakraborty
 
-title1=MBA Student
+title1=MBA StudentID - 335612
 
 title2=MBA International Management
 
@@ -17,7 +17,7 @@ education=BTech in Computer Science
 email=chakrabs@hs-pforzheim.de
 linkedin=www.linkedin.com/in/saikat-chakraborty-24175a96 
 
-about1=
+about1=I am working as a student at Deloitte in implementing AI solutions.
 about2=
 about3=
 about4=
