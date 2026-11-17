@@ -1,23 +1,27 @@
-Univer# ============================================================
+# ============================================================
 # Personal profile data for index.html
 # Edit the values after "=" only. Do not change the keys.
 # Lines starting with # are comments and are ignored.
 # ============================================================
 
-name= Saikat Chakraborty - 335612
+name=Saikat Chakraborty - 335612
 
-title1=Top 2% MBA Student (2025-2027)
+title1=MBA Student
 
-title2=Just a student
+title2=MBA International Management
 
-expertise=Automation and Reporting, , AI Applications, Agentic AI
+expertise=Automation and Reporting, AI Applications, Agentic AI
 
-education=Pforzheim University
+education=BTech in Computer Science
 
-email=chakrabs@hs-pforzheim.de
+email=luarn@mail.ntust.edu.tw
+linkedin=https://pse.is/8nn88y 
 
-about1=Student and a Working student at Deloitte
+about1=
+about2=
+about3=
+about4=
 
-phone=+007-007
+phone=+007
 
-location=Pforzheim, the beautiful city
+location=Pforzheim, city of Gold
