@@ -14,8 +14,8 @@ expertise=Automation and Reporting, AI Applications, Agentic AI
 
 education=BTech in Computer Science
 
-email=luarn@mail.ntust.edu.tw
-linkedin=https://pse.is/8nn88y 
+email=chakrabs@hs-pforzheim.de
+linkedin=www.linkedin.com/in/saikat-chakraborty-24175a96 
 
 about1=
 about2=
