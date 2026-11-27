@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily Money · Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Caslon+Text:wght@400;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Daily Money — demo edition. Same idea as the original app: one number for today,
+   one bar for the month, a 30-day strip, everything else folded away.
+   All data is made up and lives only in this browser. */
+:root{color-scheme:light dark;--bg:light-dark(#ffffff,#0d1416);--ink:light-dark(#14161a,#e6ecec);--mute:light-dark(#5d6268,#93a1a3);--rule:light-dark(#e6e8ea,#22302f);--teal:light-dark(#0b5d63,#5cc2c0);--teal2:light-dark(#7fb3b5,#2f6f70);--tealbg:light-dark(#eaf3f3,#12282a);--red:light-dark(#b3261e,#ff8a80);--card:light-dark(#f6f7f7,#111c1e);--grey:light-dark(#c9cdd1,#3a4648);--gold:light-dark(#fdf3d0,#3a3214);--goldink:light-dark(#7a5c00,#f2d27a)}
+*{box-sizing:border-box;min-width:0}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 Inter,system-ui,sans-serif;overflow-x:clip;padding-bottom:120px}
+.wrap{max-width:720px;margin:0 auto;padding:0 max(4vw,16px)}
+.num{font-family:"Libre Caslon Text",Georgia,serif;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mute{color:var(--mute)}.sm{font-size:13px}
+header{display:flex;justify-content:space-between;align-items:center;padding:18px 0 10px;gap:12px}
+.brand{display:flex;align-items:center;gap:8px}.brand svg{width:26px;height:26px}.brand b{font-size:15px;color:var(--teal)}
+.badge{font-size:12px;font-weight:600;letter-spacing:.04em;background:var(--gold);color:var(--goldink);border-radius:999px;padding:3px 10px;white-space:nowrap}
+button{font:inherit;font-size:15px;min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--teal);background:var(--teal);color:var(--bg);cursor:pointer;font-weight:500}
+button.ghost{background:transparent;color:var(--teal)}button.link{border:0;background:none;color:var(--teal);padding:0 4px;min-height:32px;text-decoration:underline;text-underline-offset:3px}
+input,select{font:inherit;font-size:16px;color:var(--ink);background:var(--bg);border:1px solid var(--grey);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+:is(input,select,button,summary,.day):focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.hero{background:var(--card);border-radius:18px;padding:22px 22px 18px}
+.lbl{font-size:14px;color:var(--mute)}
+.today{font-size:clamp(60px,15vw,92px);line-height:1;color:var(--teal);margin:6px 0 8px}.today.over{color:var(--red)}
+.sub{font-size:15px;color:var(--mute)}
+.lims{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:12px;font-size:14px;color:var(--mute)}
+.lims button{min-height:36px;padding:0 14px;border-radius:18px;background:transparent;color:var(--teal);font-weight:600}.lims button.on{background:var(--teal);color:var(--bg)}
+.story{margin-top:22px;border-top:1px solid var(--rule);padding-top:16px}
+.yrow{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+.sbar{display:flex;height:14px;border-radius:7px;overflow:hidden;margin:12px 0 10px;background:var(--rule)}.sbar i{display:block;height:100%}
+.leg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.leg div{font-size:13px;color:var(--mute)}.leg b{display:block;font-size:17px;color:var(--ink);font-family:"Libre Caslon Text",serif;font-weight:400}
+.sw{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.chips{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:16px}
+.chip{background:var(--bg);border-radius:12px;padding:10px 12px;cursor:pointer;border:1px solid transparent}.chip:hover{border-color:var(--rule)}
+.chip .lbl{font-size:12px}.chip .num{font-size:19px;display:block;margin-top:2px}
+.spark{margin:16px 2px 0;font-family:"Libre Caslon Text",serif;font-size:17px;line-height:1.4}
+.sec{margin-top:26px}
+.sech{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}.sech h2{font-size:15px;margin:0;font-weight:600}
+.strip{display:flex;align-items:flex-end;gap:3px;height:96px;position:relative;border-bottom:1px solid var(--ink)}
+.strip .lim{position:absolute;left:0;right:0;border-top:1px dashed var(--mute);pointer-events:none}
+.day{flex:1;display:flex;flex-direction:column;justify-content:flex-end;height:100%;position:relative;cursor:pointer;border-radius:3px}
+.day i{display:block;background:var(--teal2);border-radius:2px 2px 0 0;min-height:2px}
+.day.over i{background:var(--red)}.day.fut i{background:var(--rule)}.day.today i{background:var(--teal)}.day.sel{background:var(--tealbg)}
+.day .bigm{position:absolute;left:50%;transform:translateX(-50%);width:7px;height:7px;border-radius:2px;background:var(--ink);margin-bottom:3px}
+.day.ns::after{content:"";position:absolute;bottom:3px;left:50%;width:5px;height:5px;margin-left:-2.5px;border-radius:50%;background:var(--teal)}
+.axis{display:flex;justify-content:space-between;font-size:12px;color:var(--mute);margin-top:4px;gap:8px}
+.dd{margin-top:8px;padding:12px 14px;background:var(--card);border-radius:12px}
+.it{display:flex;justify-content:space-between;gap:10px;font-size:15px;padding:5px 0;border-bottom:1px solid var(--rule)}.it:last-child{border-bottom:0}
+.acc{border-bottom:1px solid var(--rule)}.acc:first-of-type{border-top:1px solid var(--ink)}
+.acc summary{list-style:none;display:flex;align-items:center;gap:12px;min-height:58px;cursor:pointer;padding:6px 2px}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary .t{font-weight:600;flex:none}
+.acc summary .s{flex:1;text-align:right;color:var(--mute);font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.acc summary .s b{color:var(--ink);font-weight:500}
+.acc summary::after{content:"";width:8px;height:8px;border-right:2px solid var(--mute);border-bottom:2px solid var(--mute);transform:rotate(45deg);margin:0 6px 4px 4px;flex:none;transition:transform .2s}
+.acc[open] summary::after{transform:rotate(225deg);margin-bottom:-4px}
+.acc .body{padding:4px 2px 20px}
+.ic{width:22px;height:22px;color:var(--teal);flex:none}
+.dh{font-size:13px;color:var(--mute);padding:14px 0 4px;display:flex;justify-content:space-between;border-bottom:1px solid var(--rule)}
+.row{display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid var(--rule)}
+.row .nm{flex:1}.tg{font-size:13px;color:var(--mute)}
+.amt{white-space:nowrap;font-variant-numeric:tabular-nums}.amt.in{color:var(--teal)}
+.pill{font-size:12px;border:1px solid var(--rule);border-radius:10px;padding:1px 7px;color:var(--mute);white-space:nowrap}
+.x{min-height:32px;width:32px;padding:0;border:0;background:none;color:var(--mute);font-size:18px}
+.ask{display:grid;grid-template-columns:minmax(0,1fr) 110px auto;gap:8px}
+.verdict{margin-top:14px;padding:16px;border-radius:14px;background:var(--card)}
+.vw{font-family:"Libre Caslon Text",serif;font-size:30px;line-height:1.1;color:var(--teal)}.vw.skip{color:var(--red)}
+.vchips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.vchips span{font-size:13px;padding:3px 9px;border-radius:12px;background:var(--tealbg);white-space:nowrap}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.wish{display:flex;gap:10px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule);flex-wrap:wrap}.wish .nm{flex:1;min-width:140px}.wish button{min-height:36px;padding:0 10px;font-size:14px}
+.chal{display:flex;gap:6px;margin:10px 0}
+.chal span{flex:1;height:30px;border-radius:6px;background:var(--rule);display:grid;place-items:center;font-size:12px;color:var(--mute)}
+.chal span.ok{background:var(--teal);color:var(--bg)}.chal span.bad{background:var(--red);color:var(--bg)}
+.picks{display:grid;gap:8px;margin-top:10px}.picks button{text-align:left;background:transparent;color:var(--ink);border-color:var(--rule);font-weight:400;padding:10px 14px}
+.meter{height:10px;background:var(--rule);border-radius:5px;overflow:hidden;margin:8px 0}.meter i{display:block;height:100%;background:var(--teal)}
+input[type=range]{accent-color:var(--teal);border:0;padding:0}
+.fut{font-size:40px;line-height:1.05;color:var(--teal);margin:6px 0}
+.sets{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}.sets label{font-size:13px;color:var(--mute);display:grid;gap:4px}
+ul.ins{margin:10px 0 0;padding-left:18px;color:var(--mute);font-size:15px}ul.ins li{margin:4px 0}
+.dock{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--rule);box-shadow:0 -6px 24px light-dark(rgba(0,0,0,.06),rgba(0,0,0,.4));z-index:5;padding-bottom:env(safe-area-inset-bottom)}
+.dock .wrap{padding-top:10px;padding-bottom:10px}
+.cap{display:flex;gap:8px}.cap input{flex:1}
+.hint{font-size:12px;color:var(--mute);margin-top:4px;min-height:16px}
+.toast{position:fixed;left:50%;bottom:100px;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 14px;border-radius:10px;display:none;gap:12px;align-items:center;z-index:9;max-width:92vw}
+.toast button{min-height:32px;background:transparent;border-color:var(--bg);color:var(--bg)}
+footer{margin-top:28px;font-size:13px;color:var(--mute)}
+@media(prefers-reduced-motion:no-preference){.day i,.sbar i,.meter i{transition:height .4s,width .4s}}
+@media(max-width:560px){.chips{grid-template-columns:1fr 1fr}.chips .chip:last-child{grid-column:1/-1}.leg b{font-size:15px}.strip{gap:1px}.ask{grid-template-columns:minmax(0,1fr) 100px}.ask button{grid-column:1/-1}.hero{padding:18px 16px 16px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand"><svg viewBox="0 0 26 26" aria-hidden="true"><rect width="26" height="26" rx="7" fill="var(--teal)"/><path d="M7 17l4-4 3 3 5-6" stroke="var(--bg)" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg><b>Daily Money</b></div><span class="badge">DEMO · SAMPLE DATA</span></header>
+  <div class="sm mute" id="cyc" style="margin:-4px 0 10px"></div>
+
+  <section class="hero" aria-label="Today">
+    <div class="lbl" id="bigl">Today you can spend</div>
+    <div class="today num" id="big" aria-live="polite">€0.00</div>
+    <div class="sub" id="bigs"></div>
+    <div class="lims" id="lims"></div>
+    <div class="story" id="story"></div>
+    <div class="chips" id="chips"></div>
+    <p class="spark" id="spark"></p>
+  </section>
+
+  <section class="sec">
+    <div class="sech"><h2>This month, day by day</h2><span class="sm mute">tap a bar</span></div>
+    <div class="strip" id="strip"></div>
+    <div class="axis" id="axis"></div>
+    <div id="dayd"></div>
+  </section>
+
+  <section class="sec">
+    <details class="acc" id="a-entries"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg><span class="t">All spending</span><span class="s" id="s-entries"></span></summary><div class="body"><ul class="ins" id="ins"></ul><div id="ledger"></div></div></details>
+    <details class="acc" id="a-buy"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2l2.4 11h10.2L20 8H6.2"/><circle cx="9" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg><span class="t">Should I buy this?</span><span class="s">Check before you pay</span></summary><div class="body">
+      <p class="sub" style="margin-top:0">Type what you want and its price. You'll see how many hours of work it costs and get a clear answer: buy, wait, or skip.</p>
+      <form class="ask" id="askf"><input id="aitem" placeholder="e.g. Winter jacket" aria-label="What"><input id="aprice" type="number" step="0.01" min="0" placeholder="Price €" aria-label="Price"><button type="submit">Should I?</button></form>
+      <div id="verdict"></div></div></details>
+    <details class="acc" id="a-wait"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/></svg><span class="t">Thinking about it</span><span class="s" id="s-wait"></span></summary><div class="body">
+      <p class="sub" style="margin-top:0">Things you're not sure about. Wait 48 hours, then decide. Everything you skip counts as money saved.</p><div id="wishes"></div></div></details>
+    <details class="acc" id="a-chal"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg><span class="t">Weekly challenge</span><span class="s" id="s-chal"></span></summary><div class="body" id="chal"></div></details>
+    <details class="acc" id="a-pot"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg><span class="t">Savings goal</span><span class="s" id="s-pot"></span></summary><div class="body" id="pot"></div></details>
+    <details class="acc" id="a-fut"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg><span class="t">What if I spend less?</span><span class="s" id="s-fut"></span></summary><div class="body">
+      <label for="fsl" class="sub">If I spent <b id="fval"></b> a day on small things…</label>
+      <input type="range" id="fsl" min="5" max="15" step="0.5" value="8">
+      <div class="fut num" id="fbig"></div><div id="ftxt" class="sub"></div></div></details>
+    <details class="acc" id="a-set"><summary><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3 10l9-6 9 6M5 10v8M19 10v8M9 10v8M15 10v8M3 20h18"/></svg><span class="t">Bank balance and settings</span><span class="s" id="s-set"></span></summary><div class="body">
+      <div class="sets">
+        <label>Daily budget for small things (€)<input id="s_dl" type="number" step="0.5"></label>
+        <label>Monthly income (€)<input id="s_in" type="number" step="1"></label>
+        <label>Starting bank balance (€)<input id="s_bal" type="number" step="1"></label>
+        <label>Take-home pay per hour (€)<input id="s_hr" type="number" step="0.1"></label>
+      </div>
+      <div class="acts"><button id="saves">Save settings</button><button class="ghost" id="reset">Reset demo data</button></div>
+      <p class="sm mute">This is a demo. Everything stays in this browser; nothing is sent anywhere.</p></div></details>
+  </section>
+  <footer>Daily Money demo · Final project · sample data for “Mia”, a part-time student in Berlin</footer>
+</div>
+
+<div class="dock"><div class="wrap">
+  <form class="cap" id="cap"><input id="txt" placeholder="What did you spend? e.g. Rewe 6.40 or kebab 7 yesterday" aria-label="What did you spend?" autocomplete="off"><button type="submit">Add</button></form>
+  <div class="hint" id="hint">Press / to jump here. Several items at once: “coffee 3.2, bus 2.9”.</div>
+</div></div>
+<div class="toast" id="toast" role="status"><span id="tmsg"></span><button id="undo">Undo</button></div>
+
+<script>
+{
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const iso=d=>{const z=new Date(d.getTime()-d.getTimezoneOffset()*6e4);return z.toISOString().slice(0,10)};
+const D=s=>new Date(s+"T12:00:00");
+const addDays=(s,n)=>{const d=D(s);d.setDate(d.getDate()+n);return iso(d)};
+const today=()=>iso(new Date());
+const eur=n=>(n<0?"−":"")+"€"+Math.abs(+n||0).toLocaleString("en-GB",{minimumFractionDigits:2,maximumFractionDigits:2});
+const eur0=n=>(n<0?"−":"")+"€"+Math.round(Math.abs(+n||0)).toLocaleString("en-GB");
+const fmtD=s=>D(s).toLocaleDateString("en-GB",{day:"numeric",month:"short"});
+const wk=s=>D(s).toLocaleDateString("en-GB",{weekday:"long"});
+const sum=a=>a.reduce((t,e)=>t+(+e.amount||0),0);
+const r2=x=>Math.round(x*100)/100;
+const KINDS={daily:"Daily",big:"Big buy",save:"Saved",in:"Money in",bill:"Bill"};
+
+/* ---------- demo data (made up, regenerated relative to today) ---------- */
+const BILLS=[["Rent (WG room)",420],["Health insurance",128],["Phone",9.99],["Gym",19.9],["Streaming",8.99],["Semester ticket",29.4]];
+function demo(){
+  let seed=7;const rnd=()=>(seed=(seed*9301+49297)%233280)/233280;
+  const t=today(),start=cycleOf(t).start,E=[];let id=1;
+  const add=(date,amount,note,cat,kind)=>E.push({id:"d"+(id++),date,amount:r2(amount),note,cat,kind});
+  const shops=[["Rewe","Groceries"],["Aldi","Groceries"],["Lidl","Groceries"],["Coffee","Eating out"],["Bakery","Eating out"],["Döner","Eating out"],["BVG ticket","Transport"],["dm","Household"],["Mensa lunch","Eating out"]];
+  for(let d=start;d<t;d=addDays(d,1)){
+    if(rnd()<0.22)continue; // no-spend day
+    const n=rnd()<0.75?1:2;for(let k=0;k<n;k++){const s=shops[Math.floor(rnd()*shops.length)];add(d,(n===2?1.2:2.2)+rnd()*(s[1]==="Groceries"?5.2:3),s[0],s[1],"daily")}}
+  add(t,3.2,"Coffee","Eating out","daily");
+  BILLS.forEach(([n,a],i)=>add(addDays(start,i<2?0:2+i),a,n,"Bills","bill"));
+  add(addDays(start,0),1150,"Salary (part-time job)","Income","in");
+  const mid=addDays(start,6);if(mid<=t)add(mid,64.9,"Winter boots","Shopping","big");
+  const b2=addDays(start,11);if(b2<=t)add(b2,39,"Train to Hamburg","Transport","big");
+  const s1=addDays(start,3);if(s1<=t)add(s1,100,"Monthly saving","Savings","save");
+  const W=[{id:"w1",item:"Noise-cancelling headphones",price:179,status:"waiting",decideAfter:Date.now()+20*3600e3},{id:"w2",item:"Concert ticket",price:55,status:"skipped"}];
+  return{E,W,S:{dailyLimit:10,income:1150,balance:2380,hourly:12.8,goal:{label:"Summer trip to Lisbon",amount:900,saved:340}},days:{},chal:{id:"nospend3",start:addDays(t,-3)}};
+}
+function cycleOf(s){const d=D(s);let y=d.getFullYear(),m=d.getMonth();if(d.getDate()<1)m--;const start=iso(new Date(y,m,1,12)),end=addDays(iso(new Date(y,m+1,1,12)),-1);return{start,end}}
+
+let ST;
+const KEY="dailymoney-demo-v2";
+function load(){try{const j=JSON.parse(localStorage.getItem(KEY));if(j&&j.E&&j.made===today().slice(0,7))return j}catch(e){}const d=demo();d.made=today().slice(0,7);return d}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}}
+ST=load();
+let selDay=null,lastAdded=[],lastDel=null,verdict=null;
+
+const S=()=>ST.S;
+const dayLim=d=>ST.days[d]&&ST.days[d].limit!=null?ST.days[d].limit:S().dailyLimit;
+const daySpent=d=>sum(ST.E.filter(e=>e.kind==="daily"&&e.date===d));
+const hrs=a=>{const h=a/(S().hourly||12);return h<1?Math.max(1,Math.round(h*60))+" min":(h<10?h.toFixed(1):Math.round(h))+" h"};
+
+function stats(){
+  const t=today(),c=cycleOf(t),inC=ST.E.filter(e=>e.date>=c.start&&e.date<=c.end),by=k=>inC.filter(e=>e.kind===k);
+  const days=Math.round((D(c.end)-D(c.start))/864e5)+1,elapsed=Math.round((D(t)-D(c.start))/864e5)+1;
+  let dailyBudget=0,dailyLeft=0,dailyOver=0;
+  for(let i=0;i<days;i++){const d=addDays(c.start,i),l=dayLim(d),s=daySpent(d);dailyBudget+=l;if(d<=t)dailyOver+=Math.max(0,s-l);if(d>t)dailyLeft+=l;if(d===t)dailyLeft+=Math.max(0,l-s)}
+  const billsPaid=sum(by("bill")),billsTotal=BILLS.reduce((a,b)=>a+b[1],0),billsDue=Math.max(0,billsTotal-billsPaid);
+  const bigs=sum(by("big")),saved=sum(by("save")),dailyAll=sum(by("daily"));
+  const buffer=S().income-billsTotal-dailyBudget-saved;
+  const bal=S().balance+sum(ST.E.filter(e=>e.kind==="in"))-sum(ST.E.filter(e=>["daily","big","bill","save"].includes(e.kind)));
+  return{c,inC,days,elapsed,t,left:dayLim(t)-daySpent(t),dailyLeft,dailyOver,billsDue,bigs,saved,dailyAll,bufLeft:buffer-bigs-dailyOver,bal};
+}
+
+/* ---------- render ---------- */
+function render(){
+  const st=stats(),t=st.t;
+  $("#cyc").textContent=`${wk(t)}, ${fmtD(t)} · day ${st.elapsed} of ${st.days} this month`;
+  const big=$("#big");big.textContent=eur(st.left);big.classList.toggle("over",st.left<0);
+  $("#bigl").textContent=st.left<0?"You've gone over today's budget by":"Today you can spend";
+  const spent=daySpent(t);
+  $("#bigs").textContent=(st.left<0?`That comes out of your big-buy money. Tomorrow starts fresh at €${S().dailyLimit}.`:`Whatever you don't spend today goes to savings tonight.${st.left>0?` That's ${hrs(st.left)} of your work.`:""}`)+(spent?` Spent today: ${eur(spent)}.`:"");
+  const tl=dayLim(t),opts=[...new Set([S().dailyLimit,S().dailyLimit-2])].sort((a,b)=>b-a);
+  $("#lims").innerHTML=`<span>Today's budget</span>`+opts.map(v=>`<button data-lim="${v}" class="${v===tl?"on":""}" aria-pressed="${v===tl}">€${v}</button>`).join("");
+  document.querySelectorAll("[data-lim]").forEach(b=>b.onclick=()=>{const v=+b.dataset.lim;ST.days[t]={limit:v===S().dailyLimit?null:v};save();render()});
+  // story
+  const goalSaved=S().goal.saved,yours=st.bal-goalSaved,spare=yours-st.billsDue-st.dailyLeft,tot=Math.max(1,st.billsDue+st.dailyLeft+Math.max(0,spare));
+  $("#story").innerHTML=`<div class="yrow"><span><span class="lbl">Money you can use</span><br><span class="num" style="font-size:30px">${eur(yours)}</span></span><span class="sm mute" style="text-align:right">${eur(st.bal)} in your bank<br>− ${eur(goalSaved)} savings (not touched)</span></div>
+   <div class="sbar" role="img" aria-label="Bills ${eur(st.billsDue)}, daily budget ${eur(st.dailyLeft)}, left over ${eur(spare)}"><i style="width:${st.billsDue/tot*100}%;background:var(--grey)"></i><i style="width:${st.dailyLeft/tot*100}%;background:var(--teal2)"></i><i style="width:${Math.max(0,spare)/tot*100}%;background:var(--teal)"></i></div>
+   <div class="leg"><div><span class="sw" style="background:var(--grey)"></span>Bills still to pay<b>${eur(st.billsDue)}</b></div><div><span class="sw" style="background:var(--teal2)"></span>Daily budget left<b>${eur(st.dailyLeft)}</b></div><div><span class="sw" style="background:${spare<0?"var(--red)":"var(--teal)"}"></span>Left over on ${fmtD(st.c.end)}<b style="color:${spare<0?"var(--red)":"var(--teal)"}">${eur(spare)}</b></div></div>`;
+  const g=S().goal,need=Math.max(0,g.amount-g.saved),ch=chalState();
+  $("#chips").innerHTML=`<div class="chip" data-open="a-entries"><span class="lbl">Left for big buys</span><span class="num" style="${st.bufLeft<0?"color:var(--red)":""}">${eur(st.bufLeft)}</span></div>
+   <div class="chip" data-open="a-pot"><span class="lbl">${esc(g.label)}</span><span class="num">${need>0?eur0(need)+" to go":"All saved"}</span></div>
+   <div class="chip" data-open="a-chal"><span class="lbl">Challenge: ${ch?esc(ch.short):"none yet"}</span><span class="num">${ch?esc(ch.score):"Pick one"}</span></div>`;
+  document.querySelectorAll("[data-open]").forEach(el=>el.onclick=()=>{const d=$("#"+el.dataset.open);d.open=true;d.scrollIntoView({behavior:"smooth",block:"start"})});
+  $("#spark").textContent=spark(st);
+  renderStrip(st);renderLedger(st);renderWish();renderChal();renderPot();renderFuture();renderSets(st);
+}
+function spark(st){const L=[],b=st.inC.filter(e=>e.kind==="big").sort((a,b)=>b.amount-a.amount)[0];
+  if(b)L.push(`Your ${b.note} cost ${eur(b.amount)}. That's ${hrs(b.amount)} of work.`);
+  const g=st.inC.filter(e=>e.cat==="Groceries").length;if(g>=4)L.push(`${g} supermarket trips in ${st.elapsed} days. Fewer, planned shops usually cost less.`);
+  L.push(`Each day you spend nothing on small things saves €${S().dailyLimit}. Over a month that's ${eur0(S().dailyLimit*30.4)}.`);
+  const sk=sum(ST.W.filter(w=>w.status==="skipped").map(w=>({amount:w.price})));if(sk)L.push(`Skipping things you didn't need has saved you ${eur(sk)} so far.`);
+  return L[new Date().getDate()%L.length]}
+function renderStrip(st){const t=st.t,c=st.c,per=[];
+  for(let i=0;i<st.days;i++){const d=addDays(c.start,i);per.push([d,daySpent(d),sum(st.inC.filter(e=>e.date===d&&e.kind==="big"))])}
+  const mx=Math.max(S().dailyLimit*2.2,...per.map(p=>p[1]));
+  $("#strip").innerHTML=`<div class="lim" style="bottom:${S().dailyLimit/mx*100}%"></div>`+per.map(([d,v,b])=>{const fut=d>t,h=fut?0:v/mx*100,cls=["day",fut?"fut":"",v>dayLim(d)?"over":"",d===t?"today":"",d===selDay?"sel":"",(!fut&&v===0&&b===0)?"ns":""].join(" ");
+    return`<div class="${cls}" data-d="${d}" tabindex="0" role="button" aria-label="${fmtD(d)}: ${eur(v)}${b?", big buy "+eur(b):""}">${b&&!fut?`<span class="bigm" style="bottom:${h}%"></span>`:""}<i style="height:${h}%"></i></div>`}).join("");
+  document.querySelectorAll("#strip .day").forEach(el=>{const go=()=>{selDay=selDay===el.dataset.d?null:el.dataset.d;render()};el.onclick=go;el.onkeydown=e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();go()}}});
+  $("#axis").innerHTML=`<span>${fmtD(c.start)}</span><span>- - €${S().dailyLimit} limit · ■ big buy · • spent nothing</span><span>${fmtD(c.end)}</span>`;
+  if(!selDay){$("#dayd").innerHTML="";return}
+  const its=st.inC.filter(e=>e.date===selDay);
+  $("#dayd").innerHTML=`<div class="dd"><b>${wk(selDay)}, ${fmtD(selDay)}</b> · ${selDay>t?"still ahead":`${eur(daySpent(selDay))} of €${dayLim(selDay)}`}${its.map(e=>`<div class="it"><span>${esc(e.note)}${e.kind!=="daily"?` <span class="tg">· ${KINDS[e.kind]}</span>`:""}</span><span>${e.kind==="in"?"+":""}${eur(e.amount)}</span></div>`).join("")||'<div class="mute" style="margin-top:6px">Nothing logged.</div>'}</div>`}
+function renderLedger(st){
+  $("#s-entries").innerHTML=`<b>${st.inC.length}</b> this month · ${eur(st.dailyAll)} on small things`;
+  const groc=st.inC.filter(e=>e.cat==="Groceries");
+  const L=[`${groc.length} supermarket trips this month (${(groc.length/Math.max(1,st.elapsed)*7).toFixed(1)} a week).`,`Small things so far: ${eur(st.dailyAll)}, about ${eur(st.dailyAll/Math.max(1,st.elapsed))} a day.`];
+  if(st.bufLeft<0)L.push(`Big buys are ${eur(-st.bufLeft)} over plan this month.`);
+  $("#ins").innerHTML=L.map(x=>`<li>${esc(x)}</li>`).join("");
+  const ds=[...new Set(st.inC.map(e=>e.date))].sort().reverse();
+  $("#ledger").innerHTML=ds.map(d=>{const its=st.inC.filter(e=>e.date===d);return`<div class="dh"><span>${wk(d)}, ${fmtD(d)}</span><span>${daySpent(d)?"small things "+eur(daySpent(d)):""}</span></div>`+its.map(e=>`<div class="row"><span class="nm">${esc(e.note)}<br><span class="tg">${esc(e.cat)}${e.kind==="big"?" · "+hrs(e.amount)+" of work":""}</span></span>${e.kind!=="daily"?`<span class="pill">${KINDS[e.kind]}</span>`:""}<span class="amt ${e.kind==="in"?"in":""}">${e.kind==="in"?"+":""}${eur(e.amount)}</span><button class="x" data-del="${e.id}" aria-label="Delete ${esc(e.note)}">×</button></div>`).join("")}).join("")||'<p class="mute">Nothing yet.</p>';
+  document.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{const i=ST.E.findIndex(e=>e.id===b.dataset.del);if(i<0)return;lastDel=ST.E.splice(i,1)[0];lastAdded=[];save();render();toast(`Deleted ${lastDel.note}`)})}
+
+/* ---------- add spending ---------- */
+const KW=[["Groceries",/rewe|aldi|lidl|edeka|netto|kaufland|grocer|supermarket|milk|bread/i],["Eating out",/kebab|d[oö]ner|pizza|cafe|coffee|kaffee|lunch|dinner|mensa|bakery|b[aä]cker|snack|burger/i],["Transport",/bvg|bahn|\bdb\b|train|ticket|bus|scooter|taxi|uber|tram/i],["Shopping",/amazon|h&m|zara|primark|shoe|boots|jacket|shirt|cloth/i],["Household",/\bdm\b|rossmann|ikea|laundry/i],["Fun",/cinema|movie|party|bar|beer|concert|game/i]];
+const guessCat=n=>(KW.find(([c,r])=>r.test(n))||["Other"])[0];
+function parse(txt){const t=today();
+  return txt.split(/\s*(?:;|\n|,(?!\d)|\band\b|\+)\s*/i).filter(Boolean).map(p=>{const m=p.match(/(\d+(?:[.,]\d{1,2})?)/);if(!m)return null;
+    const amount=parseFloat(m[1].replace(",","."));let date=t;if(/yesterday|gestern/i.test(p))date=addDays(t,-1);
+    let note=p.replace(m[0],"").replace(/€|\beuros?\b|\byesterday\b|\btoday\b|\bgestern\b|\bfor\b/gi," ").replace(/\s+/g," ").trim()||"Expense";note=note[0].toUpperCase()+note.slice(1);
+    return{id:"u"+Date.now()+Math.random().toString(36).slice(2,6),date,amount:r2(amount),note,cat:guessCat(note),kind:amount>=25?"big":"daily"}}).filter(Boolean)}
+$("#cap").onsubmit=ev=>{ev.preventDefault();const v=$("#txt").value.trim();if(!v)return;const items=parse(v);
+  if(!items.length){$("#hint").textContent="No amount found. Try “Rewe 6.40”.";return}
+  ST.E.push(...items);lastAdded=items.map(i=>i.id);lastDel=null;save();$("#txt").value="";$("#hint").textContent="Press / to jump here. Several items at once: “coffee 3.2, bus 2.9”.";render();
+  toast(items.length>1?`Added ${items.length} items, ${eur(sum(items))}`:`Added ${items[0].note}, ${eur(items[0].amount)}`)};
+function toast(m){$("#tmsg").textContent=m;$("#toast").style.display="flex";clearTimeout(toast.t);toast.t=setTimeout(()=>$("#toast").style.display="none",5000)}
+$("#undo").onclick=()=>{$("#toast").style.display="none";if(lastDel){ST.E.push(lastDel);lastDel=null}else if(lastAdded.length){ST.E=ST.E.filter(e=>!lastAdded.includes(e.id));lastAdded=[]}save();render()};
+
+/* ---------- should I buy this? (rule-based) ---------- */
+$("#askf").onsubmit=ev=>{ev.preventDefault();const item=$("#aitem").value.trim(),price=r2(parseFloat($("#aprice").value));if(!item||!(price>0))return;
+  const st=stats(),after=st.bufLeft-price,days=price/S().dailyLimit;
+  const v=price>st.bufLeft?"skip":price>=25?"wait":"buy";
+  verdict={item,price,v,after,days,head:v==="skip"?"You don't have enough big-buy money left this month.":v==="wait"?"It's a big one. Sleep on it for 48 hours.":"Small enough to fit today."};renderVerdict()};
+function renderVerdict(){const box=$("#verdict");if(!verdict){box.innerHTML="";return}const{item,price,v,after,days,head}=verdict;
+  box.innerHTML=`<div class="verdict"><div class="vw ${v==="skip"?"skip":""}">${{buy:"Go ahead",wait:"Wait 48 hours",skip:"Skip it"}[v]}</div><div style="font-weight:600;margin-top:4px">${esc(head)}</div>
+   <div class="vchips"><span>${esc(item)}: ${eur(price)}</span><span>${hrs(price)} of work</span><span>${days.toFixed(1)} days of your daily budget</span><span>Big-buy money left after: ${eur(after)}</span></div>
+   <div class="acts"><button class="ghost" id="vbuy">I bought it</button><button id="vwait">Think about it (48 h)</button><button class="ghost" id="vskip">I'll skip it</button></div></div>`;
+  const done=()=>{verdict=null;$("#aitem").value="";$("#aprice").value="";save();render();renderVerdict()};
+  $("#vbuy").onclick=()=>{ST.E.push({id:"u"+Date.now(),date:today(),amount:price,note:item,cat:guessCat(item),kind:price>=25?"big":"daily"});done()};
+  $("#vwait").onclick=()=>{ST.W.unshift({id:"w"+Date.now(),item,price,status:"waiting",decideAfter:Date.now()+48*3600e3});done()};
+  $("#vskip").onclick=()=>{ST.W.unshift({id:"w"+Date.now(),item,price,status:"skipped"});done();toast(`Nice. ${eur(price)} saved by skipping`)}}
+function renderWish(){const now=Date.now(),wait=ST.W.filter(w=>w.status==="waiting"),sk=ST.W.filter(w=>w.status==="skipped"),skSum=sum(sk.map(w=>({amount:w.price})));
+  $("#s-wait").innerHTML=`${wait.length?`<b>${wait.length} item${wait.length>1?"s":""}</b> · `:""}${eur(skSum)} saved by skipping`;
+  $("#wishes").innerHTML=wait.map(w=>{const ready=now>=w.decideAfter;return`<div class="wish"><span class="nm"><b>${esc(w.item)}</b> · ${eur(w.price)}<br><span class="tg">${hrs(w.price)} of work · ${ready?"time to decide":`decide in ${Math.ceil((w.decideAfter-now)/36e5)} h`}</span></span><button class="ghost" data-wb="${w.id}">Bought it</button><button data-wg="${w.id}">Let it go</button></div>`}).join("")+(sk.length?`<p style="margin-top:12px"><b>Saved by skipping: ${eur(skSum)}</b><br><span class="tg">${sk.map(w=>esc(w.item)).join(", ")}</span></p>`:"");
+  document.querySelectorAll("[data-wg]").forEach(b=>b.onclick=()=>{ST.W.find(w=>w.id===b.dataset.wg).status="skipped";save();render()});
+  document.querySelectorAll("[data-wb]").forEach(b=>b.onclick=()=>{const w=ST.W.find(x=>x.id===b.dataset.wb);w.status="bought";ST.E.push({id:"u"+Date.now(),date:today(),amount:w.price,note:w.item,cat:guessCat(w.item),kind:"big"});save();render()})}
+
+/* ---------- weekly challenge ---------- */
+const CHS={shop2:{name:"Only 2 grocery shops this week",short:"2 shops a week",why:"Fewer trips, fewer extras."},nospend3:{name:"3 no-spend days this week",short:"3 no-spend days",why:"Each one moves your whole daily budget to savings."},noeat:{name:"No eating out this week",short:"No eating out",why:"Cook instead and keep the money."},six:{name:"Live on €8 a day this week",short:"€8 a day",why:"€2 under your limit each day."}};
+function chalState(){const C=ST.chal;if(!C||!CHS[C.id])return null;const t=today(),ds=[...Array(7)].map((_,i)=>addDays(C.start,i));let cells=[],ok=true,score="";
+  if(C.id==="nospend3"){let n=0;cells=ds.map(d=>{if(d>t)return["",""];const z=daySpent(d)===0;if(z)n++;return[z?"✓":eur0(daySpent(d)),z?"ok":""]});ok=n>=3;score=`${n} of 3 done`}
+  if(C.id==="shop2"){let n=0;cells=ds.map(d=>{if(d>t)return["",""];const k=ST.E.filter(e=>e.date===d&&e.cat==="Groceries").length;n+=k;return[k||"·",n>2?"bad":"ok"]});ok=n<=2;score=`${n} of 2 used`}
+  if(C.id==="noeat"){let n=0;cells=ds.map(d=>{if(d>t)return["",""];const k=ST.E.filter(e=>e.date===d&&e.cat==="Eating out").length;n+=k;return[k?"✕":"✓",k?"bad":"ok"]});ok=n===0;score=n?`${n} meals out`:"On track"}
+  if(C.id==="six"){let s=0,el=0;cells=ds.map(d=>{if(d>t)return["",""];el++;const v=daySpent(d);s+=v;return[eur0(v),v<=8?"ok":"bad"]});ok=s<=8*Math.max(1,el);score=`${eur0(s)} of ${eur0(8*Math.max(1,el))}`}
+  return{...CHS[C.id],ds,cells,ok,score}}
+function renderChal(){const s=chalState(),picks=`<div class="picks">${Object.entries(CHS).map(([k,c])=>`<button data-ch="${k}"><b>${c.name}</b><br><span class="tg">${c.why}</span></button>`).join("")}</div>`;
+  $("#s-chal").innerHTML=s?`${esc(s.short)} · <b>${esc(s.score)}</b>`:"Pick one for this week";
+  $("#chal").innerHTML=s?`<div class="num" style="font-size:22px;white-space:normal">${s.name}</div><div class="tg">${fmtD(s.ds[0])} – ${fmtD(s.ds[6])} · ${esc(s.why)}</div>
+   <div class="chal">${s.cells.map((x,i)=>`<span class="${x[1]}">${x[0]||D(s.ds[i]).toLocaleDateString("en-GB",{weekday:"narrow"})}</span>`).join("")}</div>
+   <p style="margin:0"><b>${s.ok?"On track.":"Off track this week."}</b> ${esc(s.score)}.</p><details style="margin-top:8px"><summary class="tg" style="cursor:pointer">Switch challenge</summary>${picks}</details>`:picks;
+  document.querySelectorAll("[data-ch]").forEach(b=>b.onclick=()=>{ST.chal={id:b.dataset.ch,start:today()};save();render()})}
+
+/* ---------- savings goal ---------- */
+function renderPot(){const g=S().goal,need=Math.max(0,g.amount-g.saved);
+  $("#s-pot").innerHTML=`<b>${eur(g.saved)}</b> saved · ${need>0?eur0(need)+" to go":"done"}`;
+  $("#pot").innerHTML=`<div class="yrow"><span class="num" style="font-size:28px">${eur(g.saved)}</span><span class="sm mute">${esc(g.label)}: ${eur(g.amount)}</span></div>
+   <div class="meter"><i style="width:${Math.min(100,g.saved/g.amount*100)}%"></i></div>
+   <p style="margin:4px 0">${need>0?`${eur(need)} still to save. At your daily-budget savings that's about ${Math.ceil(need/S().dailyLimit)} days.`:"Goal reached."}</p>
+   <form class="ask" id="potf" style="grid-template-columns:minmax(0,1fr) auto;margin-top:10px"><input id="potin" type="number" step="0.01" min="0" placeholder="Amount €" aria-label="Amount to save"><button>Move to savings</button></form>`;
+  $("#potf").onsubmit=ev=>{ev.preventDefault();const v=r2(parseFloat($("#potin").value));if(!(v>0))return;g.saved=r2(g.saved+v);ST.E.push({id:"u"+Date.now(),date:today(),amount:v,note:"Moved to "+g.label,cat:"Savings",kind:"save"});save();render();toast(`Moved ${eur(v)} to savings`)}}
+
+/* ---------- what if ---------- */
+function renderFuture(){const x=+$("#fsl").value,base=S().dailyLimit,per=(base-x)*30.4,yr=(base-x)*365;
+  $("#fval").textContent=eur(x);
+  $("#fbig").textContent=x===base?"Your current plan":(yr>0?eur0(yr)+" saved a year":eur0(-yr)+" more spent a year");$("#fbig").style.color=yr<0?"var(--red)":"";
+  $("#s-fut").innerHTML=`€${base-1} a day instead → <b>${eur0(365)} more a year</b>`;
+  $("#ftxt").innerHTML=x===base?"Move the slider to compare.":`That's ${eur0(x*30.4)} a month instead of ${eur0(base*30.4)}: ${yr>0?"you'd save":"you'd spend an extra"} <b>${eur0(Math.abs(per))} a month</b>, ${hrs(Math.abs(per))} of work.`}
+$("#fsl").oninput=renderFuture;
+
+/* ---------- settings ---------- */
+function renderSets(st){$("#s-set").innerHTML=`<b>${eur(st.bal)}</b> in bank`;
+  if(document.activeElement&&document.activeElement.closest&&document.activeElement.closest(".sets"))return;
+  $("#s_dl").value=S().dailyLimit;$("#s_in").value=S().income;$("#s_bal").value=S().balance;$("#s_hr").value=S().hourly}
+$("#saves").onclick=()=>{const s=S();s.dailyLimit=+$("#s_dl").value||10;s.income=+$("#s_in").value||0;s.balance=+$("#s_bal").value||0;s.hourly=+$("#s_hr").value||12;save();render();toast("Settings saved")};
+$("#reset").onclick=()=>{try{localStorage.removeItem(KEY)}catch(e){}ST=load();selDay=null;render();toast("Demo data reset")};
+document.addEventListener("keydown",e=>{const tag=(e.target.tagName||"").toLowerCase();if(e.key==="/"&&!["input","textarea","select"].includes(tag)){e.preventDefault();$("#txt").focus()}if(e.key==="Escape"&&selDay){selDay=null;render()}});
+render();
+}
+</script>
+</body>
+</html>
